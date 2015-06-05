@@ -36,15 +36,25 @@ function createStream(location) {
   );
 }
 
+function checkForLocation() {
+  if (process.argv.length > 2) return;
+
+  var err = new Error("Must provide a location.")
+  onError(err);
+}
+
+function checkForConfig() {
+  if (require("fs").existsSync(configFilePath)) return;
+
+  var msg = "Must provide a twitter config file at " + configFilePath;
+  var err = new Error(msg);
+  onError(err);
+}
+
 var start = module.exports = function() {
 
-  if (process.argv.length < 3) {
-    onError("Must provide a location.");
-  }
-
-  if (!require("fs").existsSync(configFilePath)) {
-    onError("Must provide a twitter config file at " + configFilePath);
-  }
+  checkForLocation();
+  checkForConfig();
 
   geocode(process.argv[2], function(err, location) {
     if (err) return onError(err);
