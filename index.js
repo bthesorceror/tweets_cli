@@ -18,7 +18,7 @@ function geocode(location, cb) {
     var location = [bounds.southwest.lng,
                     bounds.southwest.lat,
                     bounds.northeast.lng,
-                    bounds.northeast.lat].join(",")
+                    bounds.northeast.lat].join(",");
 
     cb(null, location);
   }
@@ -26,17 +26,20 @@ function geocode(location, cb) {
   geocoder.geocode(location, onGeocode);
 }
 
-function createStream(location, filePath) {
-  return new TwitterLocationStream(location, require(filePath));
-}
-
 var configFilePath = require("path").
   join(process.env.HOME, "tweets_cli.json");
+
+function createStream(location) {
+  return new TwitterLocationStream(
+    location,
+    require(configFilePath)
+  );
+}
 
 var start = module.exports = function() {
 
   if (process.argv.length < 3) {
-    onError("Must provide a location.")
+    onError("Must provide a location.");
   }
 
   if (!require("fs").existsSync(configFilePath)) {
@@ -46,11 +49,12 @@ var start = module.exports = function() {
   geocode(process.argv[2], function(err, location) {
     if (err) return onError(err);
 
-    var stream = createStream(location, configFilePath);
+    var stream = createStream(location);
 
     stream.on("error", onError);
 
     stream.
+      pipe(require("./decoder")).
       pipe(require("./sentiment")).
       pipe(require("./colorized")).
       pipe(process.stdout);
