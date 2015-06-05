@@ -1,4 +1,5 @@
-var geocoder = require("geocoder");
+var geocoder              = require("geocoder");
+var TwitterLocationStream = require("./twitter_location_stream");
 
 function onError(err) {
   console.error(err);
@@ -6,7 +7,7 @@ function onError(err) {
 }
 
 function geocode(location, cb) {
-  
+
   function onGeocode(err, data) {
     if (err) return cb(err);
     if (data.results.length == 0)
@@ -25,12 +26,37 @@ function geocode(location, cb) {
   geocoder.geocode(location, onGeocode);
 }
 
-if (process.argv.length < 3) {
-  onError("Must provide a location.")
+function createStream(location, filePath) {
+  return new TwitterLocationStream(location, require(filePath));
 }
 
-geocode(process.argv[2], function(err, location) {
-  if (err) return onError(err);
+var configFilePath = require("path").
+  join(process.env.HOME, "tweets_cli.json");
 
-  console.dir(location);
-});
+var start = module.exports = function() {
+
+  if (process.argv.length < 3) {
+    onError("Must provide a location.")
+  }
+
+  if (!require("fs").existsSync(configFilePath)) {
+    onError("Must provide a twitter config file at " + configFilePath);
+  }
+
+  geocode(process.argv[2], function(err, location) {
+    if (err) return onError(err);
+
+    var stream = createStream(location, configFilePath);
+
+    stream.on("error", onError);
+
+    stream.
+      pipe(require("./sentiment")).
+      pipe(require("./colorized")).
+      pipe(process.stdout);
+  });
+
+}
+
+start();
+

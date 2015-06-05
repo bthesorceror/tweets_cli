@@ -9,6 +9,10 @@
   "author": "Brandon Farmer",
   "license": "ISC",
   "dependencies": {
-    "geocoder": "^0.2.2"
+    "geocoder": "^0.2.2",
+    "node-tweet-stream": "^1.8.1",
+    "sentiment": "^1.0.2",
+    "simple-ansi": "0.0.1",
+    "through": "^2.3.7"
   }
 }
