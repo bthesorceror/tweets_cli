@@ -57,6 +57,3 @@ var start = module.exports = function() {
   });
 
 }
-
-start();
-
